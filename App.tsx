@@ -6,12 +6,13 @@ import Inscription from "./src/screens/RegisterScreen";
 import Connexion from "./src/screens/ConnectionScreen";
 import SurveyListScreen from "./src/screens/SurveyListScreen";
 import CreateSurveyScreen from "./src/screens/CreateSurveyScreen";
+import HomeClientScreen from "./src/screens/HomeClientScreen";
 
-// Définition des types pour le Stack Navigator
 export type RootStackParamList = {
   Accueil: undefined;
   Inscription: undefined;
   Connexion: undefined;
+  HomeClient: undefined; 
   SurveyList: undefined;
   CreateSurvey: { refreshSurveys?: () => void } | undefined;
 };
@@ -25,6 +26,7 @@ const App = () => {
         <Stack.Screen name="Accueil" component={HomeScreen} />
         <Stack.Screen name="Inscription" component={Inscription} />
         <Stack.Screen name="Connexion" component={Connexion} />
+        <Stack.Screen name="HomeClient" component={HomeClientScreen} /> 
         <Stack.Screen name="SurveyList" component={SurveyListScreen} />
         <Stack.Screen name="CreateSurvey" component={CreateSurveyScreen} />
       </Stack.Navigator>

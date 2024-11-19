@@ -1,8 +1,14 @@
 import React, { useState } from 'react';
-import { View, Text, Button, StyleSheet, TextStyle, ViewStyle } from 'react-native';
+import { View, Text, Button, StyleSheet } from 'react-native';
 import Input from '../components/Input';
 
-const RegisterScreen: React.FC = () => {
+type RegisterScreenProps = {
+    navigation: {
+        navigate: (screen: string) => void;
+    };
+};
+
+const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation }) => {
     const [firstName, setFirstName] = useState('');
     const [lastName, setLastName] = useState('');
     const [password, setPassword] = useState('');
@@ -45,6 +51,8 @@ const RegisterScreen: React.FC = () => {
 
         if (valid) {
             console.log('Inscription réussie avec :', { firstName, lastName, password });
+            // Naviguer vers la page de connexion
+            navigation.navigate('ConnectionScreen');
         }
     };
 

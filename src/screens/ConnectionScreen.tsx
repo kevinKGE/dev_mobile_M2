@@ -21,9 +21,9 @@ const ConnectionScreen: React.FC<ConnectionScreenProps> = ({ navigation }) => {
         setFirstNameError('');
         setLastNameError('');
         setPasswordError('');
-
+    
         let valid = true;
-
+    
         if (!firstName.trim()) {
             setFirstNameError('Le prénom est requis');
             valid = false;
@@ -36,12 +36,13 @@ const ConnectionScreen: React.FC<ConnectionScreenProps> = ({ navigation }) => {
             setPasswordError('Le mot de passe est requis');
             valid = false;
         }
-
+    
         if (valid) {
             console.log('Connexion réussie avec :', { firstName, lastName, password });
-            navigation.navigate('SurveyList');
+            navigation.navigate('HomeClient'); // Modification ici
         }
     };
+    
 
     return (
         <View style={styles.container}>

@@ -11,9 +11,8 @@ type HomeScreenProps = {
 const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
     return (
         <View style={styles.container}>
-            <Text style={styles.title}>Bienvenue !</Text>
+            <Text style={styles.title}>Bienvenue sur PollPoint!</Text>
             <Text style={styles.subtitle}>Choisissez une option pour continuer</Text>
-
             <View style={styles.buttonContainer}>
                 <Button 
                     title="Inscription" 

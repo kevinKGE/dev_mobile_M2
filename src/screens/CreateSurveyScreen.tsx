@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, Button, StyleSheet, Platform } from 'react-native';
-import DateTimePicker from '@react-native-community/datetimepicker';
+import { View, Text, TextInput, Button, StyleSheet } from 'react-native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RouteProp } from '@react-navigation/native';
 import { RootStackParamList } from '../../App';
 import Survey from '../models/Survey';
+import { DatePicker } from 'react-rainbow-components';
+
 
 type CreateSurveyScreenNavigationProp = StackNavigationProp<RootStackParamList, 'CreateSurvey'>;
 type CreateSurveyScreenRouteProp = RouteProp<RootStackParamList, 'CreateSurvey'>;
@@ -17,8 +18,7 @@ type CreateSurveyScreenProps = {
 const CreateSurveyScreen: React.FC<CreateSurveyScreenProps> = ({ navigation, route }) => {
   const [name, setName] = useState<string>('');
   const [description, setDescription] = useState<string>('');
-  const [fin, setFin] = useState<Date>(new Date(new Date().setDate(new Date().getDate() + 1))); // Par défaut, demain
-  const [showPicker, setShowPicker] = useState<boolean>(false);
+  const [fin, setFin] = useState<Date>(new Date(new Date().setDate(new Date().getDate() + 1))); // Default to tomorrow
 
   const handleCreateSurvey = () => {
     if (!name || !description || !fin) {
@@ -33,8 +33,8 @@ const CreateSurveyScreen: React.FC<CreateSurveyScreenProps> = ({ navigation, rou
       name,
       description,
       formattedFin,
-      false, // cloture
-      1 // createBy : valeur exemple
+      false,
+      1
     );
 
     console.log('Préparation de la requête avec les données :', newSurvey);
@@ -67,13 +67,6 @@ const CreateSurveyScreen: React.FC<CreateSurveyScreenProps> = ({ navigation, rou
       });
   };
 
-  const onDateChange = (event: any, selectedDate?: Date) => {
-    setShowPicker(false); 
-    if (selectedDate) {
-      setFin(selectedDate);
-    }
-  };
-
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Création d'un sondage</Text>
@@ -91,19 +84,13 @@ const CreateSurveyScreen: React.FC<CreateSurveyScreenProps> = ({ navigation, rou
       />
       <View style={styles.dateContainer}>
         <Text style={styles.dateLabel}>Date de fin :</Text>
-        <Button
-          title={fin.toDateString()}
-          onPress={() => setShowPicker(true)}
+        <DatePicker
+          id="datePicker-1"
+          value={fin}
+          onChange={(value) => setFin(value as Date)}
+          formatStyle="large"
         />
       </View>
-      {showPicker && (
-        <DateTimePicker
-          value={fin}
-          mode="date"
-          display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-          onChange={onDateChange}
-        />
-      )}
       <Button title="Créer le sondage" onPress={handleCreateSurvey} />
     </View>
   );
@@ -130,12 +117,10 @@ const styles = StyleSheet.create({
   },
   dateContainer: {
     marginBottom: 15,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
   },
   dateLabel: {
     fontSize: 16,
+    marginBottom: 5,
   },
 });
 

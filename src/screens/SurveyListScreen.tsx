@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   TextInput,
   Pressable,
+  ScrollView,
 } from 'react-native';
 import Survey from '../models/Survey';
 import SurveyOption from '../models/SurveyOption';
@@ -101,7 +102,7 @@ const SurveyListScreen = ({ navigation }: { navigation: any }) => {
   );
 
   return (
-    <View style={styles.container}>
+    <ScrollView style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.title}>Les sondages publiés</Text>
         <TouchableOpacity
@@ -117,8 +118,9 @@ const SurveyListScreen = ({ navigation }: { navigation: any }) => {
         data={surveys}
         keyExtractor={(item) => item.sondageId!.toString()}
         renderItem={renderSurvey}
+        contentContainerStyle={styles.listContent}
       />
-    </View>
+    </ScrollView>
   );
 };
 
@@ -217,6 +219,9 @@ const styles = StyleSheet.create({
   addButtonText: {
     color: '#fff',
     fontSize: 14,
+  },
+  listContent: {
+    paddingBottom: 20,
   },
 });
 

@@ -21,7 +21,8 @@
     "react-dom": "18.3.1",
     "react-native": "0.76.1",
     "react-native-vector-icons": "^10.2.0",
-    "react-native-web": "~0.19.13"
+    "react-native-web": "~0.19.13",
+    "react-rainbow-components": "^1.32.0"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",
