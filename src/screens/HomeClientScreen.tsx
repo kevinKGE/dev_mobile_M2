@@ -26,6 +26,12 @@ const HomeClientScreen: React.FC<HomeClientScreenProps> = ({ navigation }) => {
       >
         <Text style={styles.buttonText}>Créer un sondage</Text>
       </TouchableOpacity>
+      <TouchableOpacity
+        style={styles.button}
+        onPress={() => navigation.navigate('MySurveys')}
+        >
+      <Text style={styles.buttonText}>Mes sondages</Text>
+      </TouchableOpacity>
     </View>
   );
 };

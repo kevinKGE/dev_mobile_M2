@@ -7,6 +7,9 @@ import Connexion from "./src/screens/ConnectionScreen";
 import SurveyListScreen from "./src/screens/SurveyListScreen";
 import CreateSurveyScreen from "./src/screens/CreateSurveyScreen";
 import HomeClientScreen from "./src/screens/HomeClientScreen";
+import MySurveysScreen from "./src/screens/MySurveysScreen";
+import EditSurveyScreen from './src/screens/EditSurveyScreen';
+import Survey from './src/models/Survey'; 
 
 export type RootStackParamList = {
   Accueil: undefined;
@@ -15,6 +18,8 @@ export type RootStackParamList = {
   HomeClient: undefined; 
   SurveyList: undefined;
   CreateSurvey: { refreshSurveys?: () => void } | undefined;
+  MySurveys: undefined;
+  EditSurvey: { survey: Survey };
 };
 
 const Stack = createStackNavigator<RootStackParamList>();
@@ -29,6 +34,8 @@ const App = () => {
         <Stack.Screen name="HomeClient" component={HomeClientScreen} /> 
         <Stack.Screen name="SurveyList" component={SurveyListScreen} />
         <Stack.Screen name="CreateSurvey" component={CreateSurveyScreen} />
+        <Stack.Screen name="MySurveys" component={MySurveysScreen} />
+        <Stack.Screen name="EditSurvey" component={EditSurveyScreen} /> 
       </Stack.Navigator>
     </NavigationContainer>
   );
