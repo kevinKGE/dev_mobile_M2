@@ -1,0 +1,41 @@
+name: SonarQube Analysis
+
+		on:
+		push:
+		branches:
+		- main
+		pull_request:
+		branches:
+		- main
+
+		jobs:
+		sonarQube:
+		runs-on: ubuntu-latest
+
+		steps:
+		# Étape 1 : Récupérer le code
+		- name: Checkout code
+		uses: actions/checkout@v3
+
+      # Étape 2 : Configurer Java (si nécessaire)
+			  - name: Setup Java
+			  uses: actions/setup-java@v3
+        with:
+				java-version: '11' # Ou la version compatible avec votre projet
+
+				# Étape 3 : Cache des dépendances (optionnel mais recommandé)
+				- name: Cache SonarQube dependencies
+				uses: actions/cache@v3
+        with:
+				path: ~/.sonar/cache
+				key: ${{ runner.os }}-sonar
+
+				# Étape 4 : Exécuter l'analyse SonarQube
+				- name: SonarQube Scan
+				env:
+				SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+				run: |
+				./gradlew sonarqube \
+				-Dsonar.projectKey=kevinKGE_dev_mobile_M2 \
+				-Dsonar.organization=Personal_projects_kge \
+				-Dsonar.host.url=https://sonarcloud.io
