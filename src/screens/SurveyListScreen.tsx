@@ -4,18 +4,17 @@ import {
   Text,
   FlatList,
   StyleSheet,
-  TouchableOpacity,
-  TextInput,
   Pressable,
   ScrollView,
+  TouchableOpacity,
 } from 'react-native';
 import Survey from '../models/Survey';
-import SurveyOption from '../models/SurveyOption';
 
 const SurveyListScreen = ({ navigation }: { navigation: any }) => {
   const [surveys, setSurveys] = useState<Survey[]>([]);
   const [selectedOptions, setSelectedOptions] = useState<{ [key: number]: string }>({});
-  const [newOption, setNewOption] = useState<{ [key: number]: string }>({});
+
+  const CHOIX = ["DISPONIBLE", "INDISPONIBLE", "PEUTETRE"];
 
   const loadSurveys = () => {
     fetch('http://localhost:8080/api/sondage/')
@@ -29,34 +28,39 @@ const SurveyListScreen = ({ navigation }: { navigation: any }) => {
       );
   };
 
-  const handleOptionSelect = (surveyId: number, optionId: string) => {
+  const handleOptionSelect = (surveyId: number, choice: string) => {
     setSelectedOptions((prev) => ({
       ...prev,
-      [surveyId]: optionId,
+      [surveyId]: choice,
     }));
   };
 
-  const handleAddOption = (surveyId: number) => {
-    const optionText = newOption[surveyId]?.trim();
-    if (optionText) {
-      setSurveys((prevSurveys) =>
-        prevSurveys.map((survey) =>
-          survey.sondageId === surveyId
-            ? {
-                ...survey,
-                options: [
-                  ...survey.options,
-                  new SurveyOption(
-                    (survey.options.length + 1).toString(),
-                    optionText
-                  ),
-                ],
-              }
-            : survey
-        )
-      );
-      setNewOption((prev) => ({ ...prev, [surveyId]: '' }));
+  const handleSubmit = (surveyId: number) => {
+    const choice = selectedOptions[surveyId];
+    if (!choice) {
+      console.error('Aucun choix sélectionné pour ce sondage');
+      return;
     }
+
+    // Envoyer le choix au backend
+    fetch(`http://localhost:8080/api/date/${surveyId}/participer`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        dateSondeeId: surveyId,
+        participant: 1, // ID du participant (à remplacer par une gestion réelle des utilisateurs)
+        choix: choice,
+      }),
+    })
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error('Erreur lors de l envoi du choix');
+        }
+        console.log('Choix envoyé avec succès');
+      })
+      .catch((error) => console.error('Erreur:', error));
   };
 
   useEffect(() => {
@@ -69,35 +73,25 @@ const SurveyListScreen = ({ navigation }: { navigation: any }) => {
       <Text style={styles.surveyDescription}>{item.description}</Text>
       <View style={styles.divider} />
       <View style={styles.optionsContainer}>
-        {item.options.map((option: SurveyOption) => (
+        {CHOIX.map((choice) => (
           <Pressable
-            key={option.id}
+            key={choice}
             style={styles.option}
-            onPress={() => handleOptionSelect(item.sondageId!, option.id)}
+            onPress={() => handleOptionSelect(item.sondageId!, choice)}
           >
             <Text style={styles.radio}>
-              {selectedOptions[item.sondageId!] === option.id ? '●' : '○'}
+              {selectedOptions[item.sondageId!] === choice ? '●' : '○'}
             </Text>
-            <Text style={styles.optionLabel}>{option.label}</Text>
+            <Text style={styles.optionLabel}>{choice}</Text>
           </Pressable>
         ))}
       </View>
-      <View style={styles.addOptionContainer}>
-        <TextInput
-          style={styles.input}
-          placeholder="Ajouter un cas"
-          value={newOption[item.sondageId!] || ''}
-          onChangeText={(text) =>
-            setNewOption((prev) => ({ ...prev, [item.sondageId!]: text }))
-          }
-        />
-        <TouchableOpacity
-          style={styles.addButton}
-          onPress={() => handleAddOption(item.sondageId!)}
-        >
-          <Text style={styles.addButtonText}>Ajouter</Text>
-        </TouchableOpacity>
-      </View>
+      <TouchableOpacity
+        style={styles.submitButton}
+        onPress={() => handleSubmit(item.sondageId!)}
+      >
+        <Text style={styles.submitButtonText}>Valider</Text>
+      </TouchableOpacity>
     </View>
   );
 
@@ -197,28 +191,16 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#333',
   },
-  addOptionContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 10,
-  },
-  input: {
-    flex: 1,
-    height: 40,
-    borderColor: '#ccc',
-    borderWidth: 1,
-    paddingHorizontal: 10,
-    marginRight: 10,
-    borderRadius: 5,
-  },
-  addButton: {
-    backgroundColor: '#007AFF',
+  submitButton: {
+    backgroundColor: '#28a745',
     padding: 10,
     borderRadius: 5,
+    marginTop: 10,
   },
-  addButtonText: {
+  submitButtonText: {
     color: '#fff',
     fontSize: 14,
+    textAlign: 'center',
   },
   listContent: {
     paddingBottom: 20,
