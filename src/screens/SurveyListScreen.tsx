@@ -7,6 +7,7 @@ import {
   Pressable,
   ScrollView,
   TouchableOpacity,
+  Image,
 } from 'react-native';
 import Survey from '../models/Survey';
 
@@ -20,7 +21,10 @@ const SurveyListScreen = ({ navigation }: { navigation: any }) => {
     fetch('http://localhost:8080/api/sondage/')
       .then((response) => response.json())
       .then((data: any[]) => {
-        const parsedSurveys = data.map((item: any) => Survey.fromJson(item));
+        const parsedSurveys = data.map((item: any) => ({
+          ...Survey.fromJson(item),
+          photoUrl: item.photoUrl || null, // Ajoute une propriété photoUrl si elle existe
+        }));
         setSurveys(parsedSurveys);
       })
       .catch((error) =>
@@ -69,7 +73,15 @@ const SurveyListScreen = ({ navigation }: { navigation: any }) => {
 
   const renderSurvey = ({ item }: { item: Survey }) => (
     <View style={styles.surveyContainer}>
-      <Text style={styles.surveyTitle}>{item.nom}</Text>
+      <View style={styles.surveyHeader}>
+        <Text style={styles.surveyTitle}>{item.nom}</Text>
+        {item.photoBase64 && (
+          <Image
+              source={{ uri: `data:image/jpeg;base64,${item.photoBase64}` }}
+              style={styles.surveyImage}
+          />
+      )}
+      </View>
       <Text style={styles.surveyDescription}>{item.description}</Text>
       <View style={styles.divider} />
       <View style={styles.optionsContainer}>
@@ -157,10 +169,22 @@ const styles = StyleSheet.create({
     shadowRadius: 5,
     elevation: 2,
   },
+  surveyHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
   surveyTitle: {
     fontSize: 16,
     fontWeight: 'bold',
     marginBottom: 5,
+    flex: 1,
+  },
+  surveyImage: {
+    width: 50,
+    height: 50,
+    borderRadius: 5,
+    marginLeft: 10,
   },
   surveyDescription: {
     fontSize: 14,

@@ -7,6 +7,7 @@ import {
   Button,
   Modal,
   TouchableOpacity,
+  Image,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native'; // Import for navigation
 import { StackNavigationProp } from '@react-navigation/stack';
@@ -32,7 +33,10 @@ const MySurveysScreen: React.FC = () => {
       .then((response) => response.json())
       .then((data: any[]) => {
         console.log('Surveys fetched:', data);
-        const allSurveys = data.map((item) => Survey.fromJson(item));
+        const allSurveys = data.map((item) => ({
+          ...Survey.fromJson(item),
+          photoBase64: item.photoBase64 || null, // Include the photoBase64 property if available
+        }));
         const userSurveys = allSurveys.filter((survey) => survey.createBy === participantId);
         setSurveys(userSurveys);
       })
@@ -76,7 +80,15 @@ const MySurveysScreen: React.FC = () => {
 
   const renderSurvey = ({ item }: { item: Survey }) => (
     <View style={styles.surveyCard}>
-      <Text style={styles.surveyTitle}>{item.nom}</Text>
+      <View style={styles.surveyHeader}>
+        <Text style={styles.surveyTitle}>{item.nom}</Text>
+        {item.photoBase64 && (
+          <Image
+            source={{ uri: `data:image/jpeg;base64,${item.photoBase64}` }}
+            style={styles.surveyImage}
+          />
+        )}
+      </View>
       <Text style={styles.surveyDescription}>{item.description}</Text>
       <Text style={styles.surveyDate}>End Date: {new Date(item.fin).toLocaleDateString()}</Text>
       <Text style={styles.surveyStatus}>
@@ -170,11 +182,21 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 3,
   },
+  surveyHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
   surveyTitle: {
     fontSize: 18,
     fontWeight: 'bold',
     color: '#007AFF',
     marginBottom: 5,
+  },
+  surveyImage: {
+    width: 50,
+    height: 50,
+    borderRadius: 5,
   },
   surveyDescription: {
     fontSize: 14,
@@ -250,6 +272,5 @@ const styles = StyleSheet.create({
     marginTop: 50,
   },
 });
-
 
 export default MySurveysScreen;
