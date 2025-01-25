@@ -10,7 +10,7 @@ type HomeClientScreenProps = {
 const HomeClientScreen: React.FC<HomeClientScreenProps> = ({ navigation }) => {
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Bienvenue dans l'Espace Client</Text>
+      <Text style={styles.title}>Bienvenue dans votre espace</Text>
       <Text style={styles.subtitle}>
         Gérez vos sondages facilement avec nos outils dédiés.
       </Text>

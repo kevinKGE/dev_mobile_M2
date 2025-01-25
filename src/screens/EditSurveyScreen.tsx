@@ -35,31 +35,32 @@ const EditSurveyScreen: React.FC<Props> = ({ route, navigation }) => {
       fin: endDate.toISOString(),
       createBy: survey.createBy,
       cloture: survey.cloture,
+      photoBase64: survey.photoBase64 || "", // Assurez-vous que ce champ est toujours rempli
     };
-
+  
     console.log('Payload being sent:', updatedSurvey);
     console.log('Endpoint:', `http://localhost:8080/api/sondage/${survey.sondageId}`);
-
+  
     if (!name || !description || !endDate) {
       console.error('Validation Error: Missing fields');
       setMessage({ type: 'error', text: 'Please fill in all fields.' });
       return;
     }
-
+  
     try {
       const response = await fetch(`http://localhost:8080/api/sondage/${survey.sondageId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(updatedSurvey),
       });
-
+  
       console.log('Server Response:', response);
-
+  
       if (response.ok) {
         console.log('Survey updated successfully');
         setMessage({ type: 'success', text: 'Survey updated successfully.' });
         setTimeout(() => {
-          navigation.navigate('MySurveys'); // Navigate back to MySurveys screen after 2 seconds
+          navigation.navigate('MySurveys');
         }, 2000);
       } else {
         const errorText = await response.text();
@@ -83,6 +84,7 @@ const EditSurveyScreen: React.FC<Props> = ({ route, navigation }) => {
       });
     }
   };
+  
 
   return (
     <View style={styles.container}>
