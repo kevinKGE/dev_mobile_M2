@@ -48,9 +48,9 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation }) => {
     setPasswordError("");
     setConfirmPasswordError("");
     setShowLoginButton(false);
-
+  
     let valid = true;
-
+  
     if (username.trim() === "") {
       setUsernameError("Le pseudo est requis");
       valid = false;
@@ -75,19 +75,22 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation }) => {
       setConfirmPasswordError("Les mots de passe ne correspondent pas.");
       valid = false;
     }
-
+  
     if (valid) {
       try {
         const response = await axios.post("http://localhost:3000/register", {
           username,
           password,
         });
-
+  
         if (response.data && response.data.id) {
           console.log("Utilisateur créé avec succès :", response.data);
+  
           await AsyncStorage.setItem("jwt_token", response.data.token);
+          await AsyncStorage.setItem("user_id", response.data.id.toString()); // Stocke l'ID utilisateur
+  
           Alert.alert("Succès", "Compte créé avec succès !");
-          navigation.navigate("SurveyList");
+          navigation.navigate("HomeClient");
         } else {
           Alert.alert("Erreur", "Impossible de créer le compte.");
         }
@@ -105,6 +108,7 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation }) => {
       }
     }
   };
+  
 
   return (
     <View style={styles.container}>

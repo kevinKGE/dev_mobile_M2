@@ -3,6 +3,8 @@ import { View, Text, TextInput, Button, StyleSheet, Image } from 'react-native';
 import { launchCamera } from 'react-native-image-picker';
 import { DatePicker } from 'react-rainbow-components';
 import RNFS from 'react-native-fs';
+import { useEffect } from "react";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const CreateSurveyScreen = ({ navigation, route }: any) => {
   const [name, setName] = useState<string>('');
@@ -10,11 +12,22 @@ const CreateSurveyScreen = ({ navigation, route }: any) => {
   const [fin, setFin] = useState<Date>(new Date(new Date().setDate(new Date().getDate() + 1)));
   const [photoUri, setPhotoUri] = useState<string | null>(null);
   const [messages, setMessages] = useState<string[]>([]);
+  const [userId, setUserId] = useState<string | null>(null);
 
 
   const addMessage = (newMessage: string) => {
     setMessages((prevMessages) => [...prevMessages, newMessage]);
   };
+
+  // Récupère l'ID utilisateur au chargement de l'écran
+  useEffect(() => {
+    const fetchUserId = async () => {
+      const storedUserId = await AsyncStorage.getItem("user_id");
+      setUserId(storedUserId);
+    };
+
+    fetchUserId();
+  }, []);
 
   const handleTakePhoto = () => {
     launchCamera(
@@ -36,38 +49,43 @@ const CreateSurveyScreen = ({ navigation, route }: any) => {
 
   const handleCreateSurvey = async () => {
     setMessages([]);
-    addMessage('Début de la création du sondage...');
+    addMessage("Début de la création du sondage...");
   
     if (!name || !description || !fin) {
-      addMessage('Veuillez remplir tous les champs.');
+      addMessage("Veuillez remplir tous les champs.");
+      return;
+    }
+  
+    if (!userId) {
+      addMessage("Erreur : utilisateur non connecté.");
       return;
     }
   
     const formattedFin = fin.toISOString();
     const formData = new FormData();
   
-    formData.append('name', name);
-    formData.append('description', description);
-    formData.append('fin', formattedFin);
-    formData.append('createBy', '1');
+    formData.append("name", name);
+    formData.append("description", description);
+    formData.append("fin", formattedFin);
+    formData.append("createBy", userId); // Utilisation de l'ID utilisateur récupéré
   
     if (photoUri) {
       try {
         const response = await fetch(photoUri);
         const blob = await response.blob();
-        formData.append('photo', blob, 'photo.jpg');
-        addMessage('Photo ajoutée au formulaire.');
+        formData.append("photo", blob, "photo.jpg");
+        addMessage("Photo ajoutée au formulaire.");
       } catch (error) {
-        console.error('Erreur lors de la conversion de la photo :', error);
-        addMessage('Erreur lors de la conversion de la photo.');
+        console.error("Erreur lors de la conversion de la photo :", error);
+        addMessage("Erreur lors de la conversion de la photo.");
         return;
       }
     }
   
     try {
-      addMessage('Envoi de la requête...');
-      const response = await fetch('http://localhost:8080/api/sondage/', {
-        method: 'POST',
+      addMessage("Envoi de la requête...");
+      const response = await fetch("http://localhost:8080/api/sondage/", {
+        method: "POST",
         body: formData,
       });
   
@@ -78,18 +96,19 @@ const CreateSurveyScreen = ({ navigation, route }: any) => {
       }
   
       const data = await response.json();
-      console.log('Réponse du serveur :', data);
+      console.log("Réponse du serveur :", data);
   
-      addMessage('Sondage créé avec succès.');
+      addMessage("Sondage créé avec succès.");
       if (route.params?.refreshSurveys) {
         route.params.refreshSurveys();
       }
-      navigation.navigate('SurveyList');
+      navigation.navigate("SurveyList");
     } catch (error) {
-      console.error('Erreur lors de la création du sondage :', error);
-      addMessage(`Erreur : ${error instanceof Error ? error.message : 'Erreur inconnue'}`);
+      console.error("Erreur lors de la création du sondage :", error);
+      addMessage(`Erreur : ${error instanceof Error ? error.message : "Erreur inconnue"}`);
     }
   };
+  
 
 
   const convertImageToBase64 = async (uri: string): Promise<string | null> => {

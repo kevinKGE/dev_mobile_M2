@@ -13,6 +13,8 @@ import { useNavigation } from '@react-navigation/native'; // Import for navigati
 import { StackNavigationProp } from '@react-navigation/stack';
 import Survey from '../models/Survey';
 import { RootStackParamList } from '../../App'; // Adjust the path to RootStackParamList
+import AsyncStorage from "@react-native-async-storage/async-storage"; // ✅ Import manquant
+
 
 type MySurveysScreenNavigationProp = StackNavigationProp<RootStackParamList, 'MySurveys'>;
 
@@ -27,20 +29,35 @@ const MySurveysScreen: React.FC = () => {
     fetchSurveys(); // Fetch surveys when the component mounts
   }, []);
 
-  const fetchSurveys = () => {
-    console.log('Fetching surveys...');
-    fetch('http://localhost:8080/api/sondage/')
-      .then((response) => response.json())
-      .then((data: any[]) => {
-        console.log('Surveys fetched:', data);
-        const allSurveys = data.map((item) => ({
+  const fetchSurveys = async () => {
+    console.log("Fetching surveys...");
+    
+    try {
+      // ✅ Récupérer l'ID de l'utilisateur connecté
+      const storedUserId = await AsyncStorage.getItem("user_id");
+  
+      if (!storedUserId) {
+        console.error("Erreur : Aucun ID utilisateur trouvé.");
+        return;
+      }
+  
+      const response = await fetch("http://localhost:8080/api/sondage/");
+      const data: any[] = await response.json();
+  
+      console.log("Surveys fetched:", data);
+  
+      // ✅ Filtrer les sondages créés par l'utilisateur connecté
+      const userSurveys = data
+        .map((item) => ({
           ...Survey.fromJson(item),
-          photoBase64: item.photoBase64 || null, // Include the photoBase64 property if available
-        }));
-        const userSurveys = allSurveys.filter((survey) => survey.createBy === participantId);
-        setSurveys(userSurveys);
-      })
-      .catch((error) => console.error('Error loading surveys:', error));
+          photoBase64: item.photoBase64 || null, // Ajout du champ photo si disponible
+        }))
+        .filter((survey) => survey.createBy === parseInt(storedUserId));
+  
+      setSurveys(userSurveys);
+    } catch (error) {
+      console.error("Error loading surveys:", error);
+    }
   };
 
   const deleteSurvey = async (id: number) => {

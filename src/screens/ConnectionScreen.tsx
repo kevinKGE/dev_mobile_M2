@@ -17,12 +17,11 @@ const ConnectionScreen: React.FC<ConnectionScreenProps> = ({ navigation }) => {
   const [showRegisterButton, setShowRegisterButton] = useState(false);
 
   const handleLogin = async () => {
-    // Réinitialisation des erreurs
     setUsernameError("");
     setPasswordError("");
     setServerError("");
     setShowRegisterButton(false);
-
+  
     let valid = true;
     if (!username.trim()) {
       setUsernameError("Le pseudo est requis.");
@@ -32,23 +31,28 @@ const ConnectionScreen: React.FC<ConnectionScreenProps> = ({ navigation }) => {
       setPasswordError("Le mot de passe est requis.");
       valid = false;
     }
-
+  
     if (!valid) return;
-
+  
     try {
       const response = await axios.post("http://localhost:3000/login", {
         username,
         password,
       });
-
-      if (response.data.token) {
+    
+      console.log("Réponse de l'API :", response.data); // 🔍 Debug ici
+    
+      if (response.data.token && response.data.id) {
         await AsyncStorage.setItem("jwt_token", response.data.token);
+        await AsyncStorage.setItem("user_id", response.data.id.toString());
+    
         Alert.alert("Succès", "Connexion réussie !");
-        navigation.navigate("SurveyList");
+        navigation.navigate("HomeClient"); // Redirection
       } else {
         Alert.alert("Erreur", "Connexion échouée. Aucun token reçu.");
       }
     } catch (error) {
+      console.error("Erreur lors de la connexion :", error); // 🔍 Debug ici
       if (axios.isAxiosError(error) && error.response?.status === 404) {
         setServerError("Le pseudo n'existe pas dans la base de données.");
         setShowRegisterButton(true);
@@ -56,7 +60,9 @@ const ConnectionScreen: React.FC<ConnectionScreenProps> = ({ navigation }) => {
         Alert.alert("Erreur", "Une erreur s'est produite lors de la connexion.");
       }
     }
+    
   };
+  
 
   return (
     <View style={styles.container}>
