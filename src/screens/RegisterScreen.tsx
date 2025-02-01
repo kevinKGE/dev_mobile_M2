@@ -24,6 +24,8 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation }) => {
   const [usernameError, setUsernameError] = useState("");
   const [passwordError, setPasswordError] = useState("");
   const [confirmPasswordError, setConfirmPasswordError] = useState("");
+  const [nom, setNom] = useState("");
+  const [prenom, setPrenom] = useState("");
 
   const [passwordCriteria, setPasswordCriteria] = useState({
     length: false,
@@ -85,10 +87,18 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation }) => {
   
         if (response.data && response.data.id) {
           console.log("Utilisateur créé avec succès :", response.data);
+          const userId = response.data.id;
   
           await AsyncStorage.setItem("jwt_token", response.data.token);
-          await AsyncStorage.setItem("user_id", response.data.id.toString()); // Stocke l'ID utilisateur
-  
+          await AsyncStorage.setItem("user_id", userId.toString());          
+          // Deuxième requête pour enregistrer les infos du participant
+          console.log("infos :", nom, prenom, userId);
+          await axios.post("http://localhost:8080/api/participant/", {
+            userId,
+            nom,
+            prenom,
+          });
+
           Alert.alert("Succès", "Compte créé avec succès !");
           navigation.navigate("HomeClient");
         } else {
@@ -113,6 +123,9 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation }) => {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Créer un compte</Text>
+      <Input placeholder="Nom" value={nom} onChangeText={setNom} />
+      <Input placeholder="Prénom" value={prenom} onChangeText={setPrenom} />
+
       <Input
         placeholder="Pseudo"
         value={username}
