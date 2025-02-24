@@ -1,20 +1,13 @@
-# Use the latest LTS version of Node.js
-FROM node:18-alpine
-
-# Set the working directory inside the container
+# Étape 1 : Build de l'application Expo pour le web
+FROM node:18-alpine as builder
 WORKDIR /app
-
-# Copy package.json and package-lock.json
 COPY package*.json ./
-
-# Install dependencies
 RUN npm install
-
-# Copy the rest of your application files
 COPY . .
+RUN npx expo export:web
 
-# Expose the port your app runs on
-EXPOSE 3000
-
-# Define the command to run your app
-CMD ["npm", "start"]
+# Étape 2 : Servir les fichiers statiques avec un serveur léger
+FROM nginx:alpine
+COPY --from=builder /app/web-build /usr/share/nginx/html
+EXPOSE 80
+CMD ["nginx", "-g", "daemon off;"]
