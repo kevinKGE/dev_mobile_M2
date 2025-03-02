@@ -3,7 +3,7 @@ import { View, Text, Alert, StyleSheet, TouchableOpacity } from "react-native";
 import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
-import { RootStackParamList } from "../../App"; // Chemin vers App.tsx
+import { RootStackParamList } from "../../App"; 
 import Input from "../components/Input";
 
 type ConnectionScreenProps = NativeStackScreenProps<RootStackParamList, "Connexion">;

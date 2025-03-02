@@ -1,74 +1,89 @@
-import React, { useState } from 'react';
-import { View, Text, TextInput, Button, StyleSheet, Image } from 'react-native';
-import { launchCamera } from 'react-native-image-picker';
-import { DatePicker } from 'react-rainbow-components';
-import RNFS from 'react-native-fs';
-import { useEffect } from "react";
+import React, { useState, useEffect } from "react";
+import {
+  View,
+  Text,
+  TextInput,
+  Button,
+  FlatList,
+  StyleSheet,
+  Alert,
+  TouchableOpacity,
+  Image,
+} from "react-native";
+import { launchCamera } from "react-native-image-picker";
+import { DatePicker } from "react-rainbow-components";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-const CreateSurveyScreen = ({ navigation, route }: any) => {
-  const [name, setName] = useState<string>('');
-  const [description, setDescription] = useState<string>('');
-  const [fin, setFin] = useState<Date>(new Date(new Date().setDate(new Date().getDate() + 1)));
-  const [photoUri, setPhotoUri] = useState<string | null>(null);
-  const [messages, setMessages] = useState<string[]>([]);
-  const [userId, setUserId] = useState<string | null>(null);
+const CreateSurveyScreen = ({ navigation, route }) => {
+  const [name, setName] = useState("");
+  const [description, setDescription] = useState("");
+  const [fin, setFin] = useState(new Date(new Date().setDate(new Date().getDate() + 1)));
+  const [dates, setDates] = useState([]);
+  const [newDate, setNewDate] = useState(new Date());
+  const [photoUri, setPhotoUri] = useState(null);
+  const [userId, setUserId] = useState(null);
+  const [messages, setMessages] = useState([]);
+  const [loading, setLoading] = useState(false);
 
-
-  const addMessage = (newMessage: string) => {
-    setMessages((prevMessages) => [...prevMessages, newMessage]);
-  };
-
-  // Récupère l'ID utilisateur au chargement de l'écran
   useEffect(() => {
     const fetchUserId = async () => {
       const storedUserId = await AsyncStorage.getItem("user_id");
       setUserId(storedUserId);
     };
-
     fetchUserId();
   }, []);
 
+  const addMessage = (newMessage) => {
+    setMessages((prevMessages) => [...prevMessages, newMessage]);
+  };
+
   const handleTakePhoto = () => {
-    launchCamera(
-      { mediaType: 'photo', cameraType: 'back', saveToPhotos: true },
-      (response) => {
-        if (response.didCancel) {
-          addMessage('Photo annulée par l\'utilisateur.');
-        } else if (response.errorCode) {
-          addMessage(`Erreur photo : ${response.errorMessage}`);
-        } else if (response.assets && response.assets.length > 0) {
-          if (response.assets[0].uri) {
-            setPhotoUri(response.assets[0].uri);
-            addMessage('Photo capturée avec succès.');
-          }
-        }
+    launchCamera({ mediaType: "photo", cameraType: "back", saveToPhotos: true }, (response) => {
+      if (response.didCancel) {
+        addMessage("Photo annulée par l'utilisateur.");
+      } else if (response.errorCode) {
+        addMessage(`Erreur photo : ${response.errorMessage}`);
+      } else if (response.assets?.length > 0) {
+        setPhotoUri(response.assets[0].uri);
+        addMessage("Photo capturée avec succès.");
       }
-    );
+    });
+  };
+
+  const addDate = () => {
+    if (!dates.find(d => d.getTime() === newDate.getTime())) {
+      setDates([...dates, newDate]);
+    } else {
+      Alert.alert("Erreur", "Cette date est déjà ajoutée.");
+    }
+  };
+
+  const removeDate = (index) => {
+    setDates(dates.filter((_, i) => i !== index));
   };
 
   const handleCreateSurvey = async () => {
     setMessages([]);
     addMessage("Début de la création du sondage...");
-  
-    if (!name || !description || !fin) {
-      addMessage("Veuillez remplir tous les champs.");
+
+    if (!name || !description || dates.length === 0 || !fin) {
+      addMessage("Veuillez remplir tous les champs et ajouter au moins une date.");
       return;
     }
-  
+
     if (!userId) {
       addMessage("Erreur : utilisateur non connecté.");
       return;
     }
-  
-    const formattedFin = fin.toISOString();
+
+    setLoading(true);
+
     const formData = new FormData();
-  
     formData.append("name", name);
     formData.append("description", description);
-    formData.append("fin", formattedFin);
-    formData.append("createBy", userId); // Utilisation de l'ID utilisateur récupéré
-  
+    formData.append("fin", fin.toISOString());
+    formData.append("createBy", userId);
+
     if (photoUri) {
       try {
         const response = await fetch(photoUri);
@@ -81,24 +96,32 @@ const CreateSurveyScreen = ({ navigation, route }: any) => {
         return;
       }
     }
-  
+
     try {
       addMessage("Envoi de la requête...");
       const response = await fetch("http://localhost:8080/api/sondage/", {
         method: "POST",
         body: formData,
       });
-  
+
       if (!response.ok) {
         const errorText = await response.text();
         console.error(`Erreur HTTP ${response.status}:`, errorText);
         throw new Error(`Erreur HTTP ${response.status}`);
       }
-  
+
       const data = await response.json();
-      console.log("Réponse du serveur :", data);
-  
       addMessage("Sondage créé avec succès.");
+
+      // Ajouter les dates une par une après la création du sondage
+      for (const date of dates) {
+        await fetch(`http://localhost:8080/api/sondage/${data.sondageId}/dates`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ date: date.toISOString() }),
+        });
+      }
+
       if (route.params?.refreshSurveys) {
         route.params.refreshSurveys();
       }
@@ -106,118 +129,69 @@ const CreateSurveyScreen = ({ navigation, route }: any) => {
     } catch (error) {
       console.error("Erreur lors de la création du sondage :", error);
       addMessage(`Erreur : ${error instanceof Error ? error.message : "Erreur inconnue"}`);
+    } finally {
+      setLoading(false);
     }
   };
-  
-
-
-  const convertImageToBase64 = async (uri: string): Promise<string | null> => {
-    if (typeof window !== 'undefined') {
-      // Web: Utilisation de FileReader
-      try {
-        const response = await fetch(uri); // Récupérer le fichier
-        const blob = await response.blob(); // Convertir en Blob
-        return await new Promise<string>((resolve, reject) => {
-          const reader = new FileReader();
-          reader.onloadend = () => resolve(reader.result as string); // Base64
-          reader.onerror = reject;
-          reader.readAsDataURL(blob); // Lire le blob
-        });
-      } catch (error) {
-        console.error("Erreur lors de la conversion de l'image en base64 (web) :", error);
-        return null;
-      }
-    } else {
-      // Mobile: Utilisation de RNFS
-      try {
-        const RNFS = require('react-native-fs'); // Charger RNFS uniquement pour mobile
-        return await RNFS.readFile(uri, 'base64'); // Lire en base64
-      } catch (error) {
-        console.error("Erreur lors de la conversion de l'image en base64 (mobile) :", error);
-        return null;
-      }
-    }
-  };
-  
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Création d'un sondage</Text>
+      <Text style={styles.title}>Créer un sondage</Text>
       <View style={styles.messageContainer}>
         {messages.map((msg, index) => (
-          <Text key={index} style={styles.message}>
-            {msg}
-          </Text>
+          <Text key={index} style={styles.message}>{msg}</Text>
         ))}
       </View>
-      <TextInput
-        placeholder="Nom du sondage"
-        value={name}
-        onChangeText={setName}
-        style={styles.input}
+      <TextInput placeholder="Nom du sondage" value={name} onChangeText={setName} style={styles.input} />
+      <TextInput placeholder="Description" value={description} onChangeText={setDescription} style={styles.input} />
+      
+      <Text style={styles.subtitle}>Date de fin :</Text>
+      <DatePicker value={fin} onChange={(value) => setFin(value)} formatStyle="large" />
+
+      <Text style={styles.subtitle}>Ajouter des dates :</Text>
+      <DatePicker value={newDate} onChange={setNewDate} formatStyle="large" />
+      <Button title="Ajouter la date" onPress={addDate} />
+
+      <FlatList
+        data={dates}
+        keyExtractor={(item, index) => index.toString()}
+        renderItem={({ item, index }) => (
+          <View style={styles.dateItem}>
+            <Text>{new Date(item).toLocaleDateString()}</Text>
+            <TouchableOpacity onPress={() => removeDate(index)}>
+              <Text style={styles.removeText}>✖</Text>
+            </TouchableOpacity>
+          </View>
+        )}
       />
-      <TextInput
-        placeholder="Description"
-        value={description}
-        onChangeText={setDescription}
-        style={styles.input}
-      />
-      <View style={styles.dateContainer}>
-        <Text style={styles.dateLabel}>Date de fin :</Text>
-        <DatePicker
-          id="datePicker-1"
-          value={fin}
-          onChange={(value) => setFin(value as Date)}
-          formatStyle="large"
-        />
-      </View>
+
       <Button title="Prendre une photo" onPress={handleTakePhoto} />
       {photoUri && <Image source={{ uri: photoUri }} style={styles.preview} />}
-      <Button title="Créer le sondage" onPress={handleCreateSurvey} />
+
+      <TouchableOpacity
+        style={[styles.createButton, loading && styles.disabledButton]}
+        onPress={handleCreateSurvey}
+        disabled={loading}
+      >
+        <Text style={styles.createButtonText}>
+          {loading ? "Création en cours..." : "Créer le sondage"}
+        </Text>
+      </TouchableOpacity>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: 20,
-    justifyContent: 'center',
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 20,
-    textAlign: 'center',
-  },
-  input: {
-    height: 40,
-    borderColor: '#ccc',
-    borderWidth: 1,
-    marginBottom: 15,
-    paddingHorizontal: 10,
-  },
-  dateContainer: {
-    marginBottom: 15,
-  },
-  dateLabel: {
-    fontSize: 16,
-    marginBottom: 5,
-  },
-  preview: {
-    width: 100,
-    height: 100,
-    marginVertical: 10,
-  },
-  messageContainer: {
-    marginBottom: 15,
-  },
-  message: {
-    fontSize: 16,
-    color: 'red',
-    marginBottom: 5,
-    textAlign: 'center',
-  },
+  container: { flex: 1, padding: 20, backgroundColor: "#f8f8f8" },
+  title: { fontSize: 24, fontWeight: "bold", marginBottom: 10, textAlign: "center" },
+  input: { backgroundColor: "#fff", padding: 10, borderRadius: 5, marginBottom: 10, borderWidth: 1, borderColor: "#ccc" },
+  subtitle: { fontSize: 18, fontWeight: "bold", marginTop: 15 },
+  dateItem: { flexDirection: "row", justifyContent: "space-between", backgroundColor: "#e6e6e6", padding: 10, marginVertical: 5, borderRadius: 5 },
+  removeText: { color: "red", fontSize: 16 },
+  preview: { width: 100, height: 100, marginVertical: 10 },
+  createButton: { marginTop: 20, backgroundColor: "#007BFF", paddingVertical: 15, borderRadius: 5, alignItems: "center" },
+  createButtonText: { color: "white", fontSize: 16, fontWeight: "bold" },
+  disabledButton: { backgroundColor: "#ccc" },
 });
 
 export default CreateSurveyScreen;
