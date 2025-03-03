@@ -187,7 +187,7 @@ const MySurveysScreen: React.FC = () => {
       {/* Boutons stylisés */}
       <View style={styles.buttonGroup}>
         <TouchableOpacity style={styles.modifyButton} onPress={() => navigateToEditSurvey(item)}>
-          <Text style={styles.buttonText}>✏️</Text>
+          <Text style={styles.buttonText}>✏️ Modifier</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.deleteButton} onPress={() => confirmDeleteSurvey(item)}>
           <Text style={styles.buttonText}>🗑 Supprimer</Text>
@@ -203,7 +203,6 @@ const MySurveysScreen: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>My Surveys</Text>
       {surveys.length > 0 ? (
         <FlatList
           data={surveys}
@@ -211,7 +210,7 @@ const MySurveysScreen: React.FC = () => {
           keyExtractor={(item) => item.sondageId?.toString() || ''}
         />
       ) : (
-        <Text style={styles.noSurveys}>No surveys created.</Text>
+        <Text style={styles.noSurveys}>Aucun Sondage créé.</Text>
       )}
 
       {/* Confirmation Modal */}
@@ -224,22 +223,22 @@ const MySurveysScreen: React.FC = () => {
         >
           <View style={styles.modalContainer}>
             <View style={styles.modalContent}>
-              <Text style={styles.modalTitle}>Delete Survey</Text>
+              <Text style={styles.modalTitle}>Supprimer le sondage</Text>
               <Text style={styles.modalMessage}>
-                Are you sure you want to delete the survey "{selectedSurvey.nom}"?
+                Es tu sur de vouloir supprimer le sondage "{selectedSurvey.nom}"?
               </Text>
               <View style={styles.modalActions}>
                 <TouchableOpacity
                   style={[styles.modalButton, styles.cancelButton]}
                   onPress={closeModal}
                 >
-                  <Text style={styles.buttonText}>Cancel</Text>
+                  <Text style={styles.buttonText}>Annuler</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
                   style={[styles.modalButton, styles.deleteButton]}
                   onPress={() => deleteSurvey(selectedSurvey.sondageId!)}
                 >
-                  <Text style={styles.buttonText}>Delete</Text>
+                  <Text style={styles.buttonText}>Supprimer</Text>
                 </TouchableOpacity>
               </View>
             </View>
