@@ -28,17 +28,18 @@ const EditSurveyScreen: React.FC<Props> = ({ route, navigation }) => {
 
   const handleSave = async () => {
     console.log('Attempting to save changes...');
-    const updatedSurvey = {
-      sondageId: survey.sondageId,
-      nom: name,
-      description,
-      fin: endDate.toISOString(),
-      createBy: survey.createBy,
-      cloture: survey.cloture,
-      photoBase64: survey.photoBase64 || "", // Assurez-vous que ce champ est toujours rempli
-    };
+    
+    const formData = new FormData();
+    formData.append("name", name);
+    formData.append("description", description);
+    formData.append("fin", endDate.toISOString());
+    formData.append("cloture", survey.cloture.toString());
+    
+    if (survey.photoBase64) {
+      formData.append("photo", survey.photoBase64);
+    }
   
-    console.log('Payload being sent:', updatedSurvey);
+    console.log('Payload being sent:', formData);
     console.log('Endpoint:', `http://localhost:8080/api/sondage/${survey.sondageId}`);
   
     if (!name || !description || !endDate) {
@@ -50,8 +51,10 @@ const EditSurveyScreen: React.FC<Props> = ({ route, navigation }) => {
     try {
       const response = await fetch(`http://localhost:8080/api/sondage/${survey.sondageId}`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(updatedSurvey),
+        headers: {
+          'Accept': 'application/json',
+        },
+        body: formData, // Ne pas ajouter Content-Type, FormData le gère automatiquement
       });
   
       console.log('Server Response:', response);
@@ -69,7 +72,6 @@ const EditSurveyScreen: React.FC<Props> = ({ route, navigation }) => {
           type: 'error',
           text: `Failed to update the survey. \n
           Endpoint: http://localhost:8080/api/sondage/${survey.sondageId} \n
-          Payload: ${JSON.stringify(updatedSurvey, null, 2)} \n
           Response: ${response.statusText}`,
         });
       }
@@ -79,11 +81,11 @@ const EditSurveyScreen: React.FC<Props> = ({ route, navigation }) => {
         type: 'error',
         text: `An error occurred while updating the survey. \n
         Endpoint: http://localhost:8080/api/sondage/${survey.sondageId} \n
-        Payload: ${JSON.stringify(updatedSurvey, null, 2)} \n
         Error: ${(error as any).message}`,
       });
     }
   };
+  
   
 
   return (

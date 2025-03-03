@@ -24,29 +24,30 @@ const MySurveysScreen: React.FC = () => {
   const [isModalVisible, setModalVisible] = useState(false);
   const participantId = 1; // Static participant ID (replace with dynamic management if needed)
   const navigation = useNavigation<MySurveysScreenNavigationProp>(); // Typed navigation hook
+  const [choicesStats, setChoicesStats] = useState<{ [key: number]: Record<string, number> }>({});
 
   useEffect(() => {
     fetchSurveys(); // Fetch surveys when the component mounts
   }, []);
 
   const fetchSurveys = async () => {
-    console.log("Fetching surveys...");
-    
-    try {
-      // ✅ Récupérer l'ID de l'utilisateur connecté
-      const storedUserId = await AsyncStorage.getItem("user_id");
+    console.log("🔍 Fetching surveys...");
   
+    try {
+      // Récupérer l'ID de l'utilisateur connecté
+      const storedUserId = await AsyncStorage.getItem("user_id");
       if (!storedUserId) {
-        console.error("Erreur : Aucun ID utilisateur trouvé.");
+        console.error("❌ Erreur : Aucun ID utilisateur trouvé.");
         return;
       }
+      console.log(`✅ ID utilisateur récupéré : ${storedUserId}`);
   
+      // Récupérer tous les sondages depuis l'API
       const response = await fetch("http://localhost:8080/api/sondage/");
       const data: any[] = await response.json();
+      console.log("📥 Sondages reçus depuis l'API :", data);
   
-      console.log("Surveys fetched:", data);
-  
-      // ✅ Filtrer les sondages créés par l'utilisateur connecté
+      // Filtrer les sondages créés par l'utilisateur connecté
       const userSurveys = data
         .map((item) => ({
           ...Survey.fromJson(item),
@@ -54,30 +55,79 @@ const MySurveysScreen: React.FC = () => {
         }))
         .filter((survey) => survey.createBy === parseInt(storedUserId));
   
+      console.log("📊 Sondages filtrés (créés par l'utilisateur) :", userSurveys);
+  
       setSurveys(userSurveys);
+  
+      // Charger les stats pour chaque sondage après récupération
+      for (const survey of userSurveys) {
+        fetchChoicesStats(survey.sondageId);
+      }
     } catch (error) {
-      console.error("Error loading surveys:", error);
+      console.error("❌ Erreur lors du chargement des sondages :", error);
     }
   };
+  
+  
 
   const deleteSurvey = async (id: number) => {
-    console.log(`Attempting to delete survey with ID: ${id}`);
+    console.log(`🗑 Tentative de suppression du sondage ID: ${id}`);
+  
     try {
       const response = await fetch(`http://localhost:8080/api/sondage/${id}`, {
         method: 'DELETE',
       });
-
+  
       if (response.ok) {
-        console.log(`Survey with ID ${id} deleted successfully`);
+        console.log(`✅ Sondage ID ${id} supprimé avec succès.`);
         setSurveys((prevSurveys) => prevSurveys.filter((survey) => survey.sondageId !== id));
-        closeModal(); // Close the modal after deletion
+        closeModal();
       } else {
-        console.error(`Failed to delete survey with ID ${id}`);
+        console.error(`❌ Échec de la suppression du sondage ID ${id}`);
       }
     } catch (error) {
-      console.error('Error deleting survey:', error);
+      console.error('❌ Erreur lors de la suppression du sondage :', error);
     }
   };
+  
+
+  const fetchChoicesStats = async (surveyId: number) => {
+    try {
+      console.log(`🔍 Fetching dates for survey ID: ${surveyId}`);
+      const response = await fetch(`http://localhost:8080/api/sondage/${surveyId}/dates`);
+      const dates = await response.json();
+      
+      console.log(`📅 Dates received for survey ${surveyId}:`, dates);
+  
+      const stats: { [key: number]: { date: string; choices: Record<string, number> } } = {};
+  
+      for (const date of dates) {
+        console.log(`🔄 Fetching choices for date ID: ${date.dateSondageId}`);
+        const res = await fetch(`http://localhost:8080/api/date/${date.dateSondageId}/choices`);
+        const data = await res.json();
+        
+        console.log(`📊 Raw choices data received for date ${date.date}:`, data);
+  
+        // Correction ici : on accède directement aux choix imbriqués
+        stats[date.dateSondageId] = {
+          date: date.date,
+          choices: data.choices?.choices || {}, // Extraire les choix imbriqués
+        };
+      }
+  
+      console.log(`✅ Processed choices stats for survey ${surveyId}:`, stats);
+  
+      setChoicesStats((prevStats) => ({ ...prevStats, [surveyId]: stats }));
+    } catch (error) {
+      console.error(`❌ Erreur lors de la récupération des statistiques pour le sondage ${surveyId}:`, error);
+    }
+  };
+  
+  
+  
+  
+
+  
 
   const confirmDeleteSurvey = (survey: Survey) => {
     console.log('Opening confirmation modal for survey:', survey);
@@ -107,24 +157,49 @@ const MySurveysScreen: React.FC = () => {
         )}
       </View>
       <Text style={styles.surveyDescription}>{item.description}</Text>
-      <Text style={styles.surveyDate}>End Date: {new Date(item.fin).toLocaleDateString()}</Text>
-      <Text style={styles.surveyStatus}>
-        Status: {item.cloture ? 'Closed' : 'Open'}
+      <Text style={styles.surveyDate}>📅 Fin: {new Date(item.fin).toLocaleDateString()}</Text>
+      <Text style={[styles.surveyStatus, { color: item.cloture ? "#FF3B30" : "#007AFF" }]}>
+        {item.cloture ? "🔴 Clôturé" : "🟢 Ouvert"}
       </Text>
+  
+      {/* Résultats avec dates et stats sur une ligne */}
+      {choicesStats[item.sondageId] && (
+  <View style={styles.statsContainer}>
+    <Text style={styles.statsTitle}>📊 Résultats :</Text>
+    {Object.entries(choicesStats[item.sondageId]).map(([dateId, stats]) => {
+      const formattedDate = new Date(stats.date).toLocaleDateString();
+
+      return (
+        <View key={dateId} style={styles.statsRow}>
+          <Text style={styles.statsDate}>📅 {formattedDate}</Text>
+          <View style={styles.choicesContainer}>
+            <Text style={styles.choiceText}>✅ {stats.choices["DISPONIBLE"] || 0}</Text>
+            <Text style={styles.choiceText}>❌ {stats.choices["INDISPONIBLE"] || 0}</Text>
+            <Text style={styles.choiceText}>⚠️ {stats.choices["PEUTETRE"] || 0}</Text>
+          </View>
+        </View>
+      );
+    })}
+  </View>
+)}
+
+  
+      {/* Boutons stylisés */}
       <View style={styles.buttonGroup}>
-        <Button
-          title="Modify"
-          color="#007AFF"
-          onPress={() => navigateToEditSurvey(item)}
-        />
-        <Button
-          title="Delete"
-          color="#FF3B30"
-          onPress={() => confirmDeleteSurvey(item)}
-        />
+        <TouchableOpacity style={styles.modifyButton} onPress={() => navigateToEditSurvey(item)}>
+          <Text style={styles.buttonText}>✏️</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.deleteButton} onPress={() => confirmDeleteSurvey(item)}>
+          <Text style={styles.buttonText}>🗑 Supprimer</Text>
+        </TouchableOpacity>
       </View>
     </View>
   );
+  
+  
+  
+  
+  
 
   return (
     <View style={styles.container}>
@@ -176,22 +251,10 @@ const MySurveysScreen: React.FC = () => {
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: 20,
-    backgroundColor: '#f0f4f8',
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#333',
-    marginBottom: 20,
-    textAlign: 'center',
-  },
   surveyCard: {
     backgroundColor: '#fff',
     padding: 15,
-    borderRadius: 8,
+    borderRadius: 10,
     marginBottom: 15,
     shadowColor: '#000',
     shadowOpacity: 0.1,
@@ -208,85 +271,84 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
     color: '#007AFF',
-    marginBottom: 5,
   },
   surveyImage: {
-    width: 50,
-    height: 50,
-    borderRadius: 5,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
   },
   surveyDescription: {
     fontSize: 14,
     color: '#666',
-    marginBottom: 5,
+    marginVertical: 5,
   },
   surveyDate: {
     fontSize: 12,
     color: '#888',
-    marginBottom: 5,
   },
   surveyStatus: {
-    fontSize: 12,
+    fontSize: 14,
     fontWeight: '600',
-    color: '#333',
     marginBottom: 10,
+  },
+  statsContainer: {
+    backgroundColor: '#f0f4f8',
+    padding: 10,
+    borderRadius: 8,
+    marginTop: 10,
+  },
+  statsTitle: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#333',
+  },
+  statsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginVertical: 5,
+  },
+  statsDate: {
+    fontSize: 12,
+    fontWeight: 'bold',
+    color: '#555',
+    flex: 1,
+  },
+  choicesContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 2,
+    justifyContent: 'space-evenly',
+  },
+  choiceText: {
+    fontSize: 12,
+    color: '#444',
+    fontWeight: '500',
   },
   buttonGroup: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     marginTop: 10,
   },
-  modalContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-  },
-  modalContent: {
-    backgroundColor: '#fff',
-    padding: 20,
-    borderRadius: 10,
-    width: '80%',
-    alignItems: 'center',
-  },
-  modalTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    marginBottom: 10,
-  },
-  modalMessage: {
-    fontSize: 16,
-    color: '#555',
-    marginBottom: 20,
-    textAlign: 'center',
-  },
-  modalActions: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    width: '100%',
-  },
-  modalButton: {
-    flex: 1,
-    marginHorizontal: 5,
-    paddingVertical: 10,
+  modifyButton: {
+    backgroundColor: '#007AFF',
+    padding: 8,
     borderRadius: 5,
-  },
-  cancelButton: {
-    backgroundColor: '#ccc',
+    flex: 1,
+    marginRight: 5,
+    alignItems: 'center',
   },
   deleteButton: {
     backgroundColor: '#FF3B30',
+    padding: 8,
+    borderRadius: 5,
+    flex: 2,
+    marginLeft: 5,
+    alignItems: 'center',
   },
   buttonText: {
     color: '#fff',
     fontWeight: 'bold',
-    textAlign: 'center',
-  },
-  noSurveys: {
-    fontSize: 16,
-    color: '#666',
-    textAlign: 'center',
-    marginTop: 50,
   },
 });
 
