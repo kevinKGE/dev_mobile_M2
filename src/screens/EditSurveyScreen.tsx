@@ -90,7 +90,7 @@ const EditSurveyScreen: React.FC<Props> = ({ route, navigation }) => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Edit Survey</Text>
+      <Text style={styles.title}>Modifier le sondage</Text>
       <TextInput
         style={styles.input}
         placeholder="Survey Name"
@@ -110,7 +110,7 @@ const EditSurveyScreen: React.FC<Props> = ({ route, navigation }) => {
         }}
       />
       <View style={styles.dateContainer}>
-        <Text style={styles.dateLabel}>End Date:</Text>
+        <Text style={styles.dateLabel}>Date de fin:</Text>
         <DatePicker
           id="datePicker-2"
           value={endDate}
@@ -127,7 +127,7 @@ const EditSurveyScreen: React.FC<Props> = ({ route, navigation }) => {
         </Text>
       )}
       <Button
-        title="Save Changes"
+        title="Réaliser les modifications"
         onPress={() => {
           console.log('Save button pressed');
           handleSave();

@@ -215,36 +215,37 @@ const MySurveysScreen: React.FC = () => {
 
       {/* Confirmation Modal */}
       {selectedSurvey && (
-        <Modal
-          animationType="slide"
-          transparent={true}
-          visible={isModalVisible}
-          onRequestClose={closeModal}
-        >
-          <View style={styles.modalContainer}>
-            <View style={styles.modalContent}>
-              <Text style={styles.modalTitle}>Supprimer le sondage</Text>
-              <Text style={styles.modalMessage}>
-                Es tu sur de vouloir supprimer le sondage "{selectedSurvey.nom}"?
-              </Text>
-              <View style={styles.modalActions}>
-                <TouchableOpacity
-                  style={[styles.modalButton, styles.cancelButton]}
-                  onPress={closeModal}
-                >
-                  <Text style={styles.buttonText}>Annuler</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={[styles.modalButton, styles.deleteButton]}
-                  onPress={() => deleteSurvey(selectedSurvey.sondageId!)}
-                >
-                  <Text style={styles.buttonText}>Supprimer</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-          </View>
-        </Modal>
-      )}
+  <Modal
+    animationType="fade" // Change "slide" to "fade" for a better effect
+    transparent={true}
+    visible={isModalVisible}
+    onRequestClose={closeModal}
+  >
+    <View style={styles.modalOverlay}>
+      <View style={styles.modalContainer}>
+        <Text style={styles.modalTitle}>Supprimer le sondage</Text>
+        <Text style={styles.modalMessage}>
+          Es-tu sûr de vouloir supprimer le sondage "{selectedSurvey.nom}" ?
+        </Text>
+        <View style={styles.modalActions}>
+          <TouchableOpacity
+            style={[styles.modalButton, styles.cancelButton]}
+            onPress={closeModal}
+          >
+            <Text style={styles.buttonText}>Annuler</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.modalButton, styles.deleteButton]}
+            onPress={() => deleteSurvey(selectedSurvey.sondageId!)}
+          >
+            <Text style={styles.buttonText}>Supprimer</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    </View>
+  </Modal>
+)}
+
     </View>
   );
 };
@@ -349,6 +350,49 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontWeight: 'bold',
   },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)', // Fond semi-transparent
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalContainer: {
+    width: '80%', // Largeur du modal
+    backgroundColor: 'white',
+    padding: 20,
+    borderRadius: 10,
+    elevation: 5, // Ombre sur Android
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    marginBottom: 10,
+  },
+  modalMessage: {
+    fontSize: 16,
+    textAlign: 'center',
+    marginBottom: 20,
+  },
+  modalActions: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  modalButton: {
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 5,
+    flex: 1,
+    alignItems: 'center',
+    marginHorizontal: 5,
+  },
+  cancelButton: {
+    backgroundColor: '#ccc',
+  }
 });
 
 export default MySurveysScreen;
