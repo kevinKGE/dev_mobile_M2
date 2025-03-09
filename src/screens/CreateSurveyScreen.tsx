@@ -13,6 +13,7 @@ import {
 import { launchCamera } from "react-native-image-picker";
 import { DatePicker } from "react-rainbow-components";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import ImageSelector from "../components/ImageSelector";
 
 const CreateSurveyScreen = ({ navigation, route }) => {
   const [name, setName] = useState("");
@@ -164,10 +165,9 @@ const CreateSurveyScreen = ({ navigation, route }) => {
           </View>
         )}
       />
+      <ImageSelector onImageSelected={setPhotoUri} />
 
-      <Button title="Prendre une photo" onPress={handleTakePhoto} />
-      {photoUri && <Image source={{ uri: photoUri }} style={styles.preview} />}
-
+      
       <TouchableOpacity
         style={[styles.createButton, loading && styles.disabledButton]}
         onPress={handleCreateSurvey}
