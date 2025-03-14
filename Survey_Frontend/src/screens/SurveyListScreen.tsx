@@ -61,7 +61,7 @@ const SurveyListScreen: React.FC<SurveyListScreenProps> = ({ navigation }) => {
 
       <FlatList 
         data={surveys} 
-        keyExtractor={(item) => item.sondageId?.toString() || Math.random().toString()} 
+        keyExtractor={(item) => item.sondageId?.toString() || Math.random().toString() // NOSONAR not used in secure contexts}
         renderItem={({ item }) => <SurveyCard survey={item} userId={userId} />}
         contentContainerStyle={styles.listContent} 
       />
