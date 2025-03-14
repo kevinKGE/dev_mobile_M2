@@ -24,7 +24,7 @@ const MySurveysScreen: React.FC = () => {
   const [isModalVisible, setModalVisible] = useState(false);
   const participantId = 1; 
   const navigation = useNavigation<MySurveysScreenNavigationProp>(); 
-  const [choicesStats, setChoicesStats] = useState<{ [key: number]: Record<string, number> }>({});
+  const [choicesStats, setChoicesStats] = useState<{ [key: number]: { [key: number]: { date: string; choices: Record<string, number> } } }>({});
 
   // Récupérer les sondages créés par l'utilisateur
   useEffect(() => {
@@ -63,7 +63,9 @@ const MySurveysScreen: React.FC = () => {
   
       // on charg les stats pour chaque sondage après récupération
       for (const survey of userSurveys) {
-        fetchChoicesStats(survey.sondageId);
+        if (survey.sondageId !== null) {
+          fetchChoicesStats(survey.sondageId);
+        }
       }
     } catch (error) {
       console.error("❌ Erreur lors du chargement des sondages :", error);
@@ -168,7 +170,7 @@ const MySurveysScreen: React.FC = () => {
         {item.cloture ? "🔴 Clôturé" : "🟢 Ouvert"}
       </Text>
   
-      {choicesStats[item.sondageId] && (
+      {item.sondageId !== null && choicesStats[item.sondageId] && (
   <View style={styles.statsContainer}>
     <Text style={styles.statsTitle}>📊 Résultats :</Text>
     {Object.entries(choicesStats[item.sondageId]).map(([dateId, stats]) => {
@@ -254,6 +256,11 @@ const MySurveysScreen: React.FC = () => {
 };
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    padding: 20,
+    backgroundColor: '#f8f8f8',
+  },
   surveyCard: {
     backgroundColor: '#fff',
     padding: 15,
@@ -395,7 +402,13 @@ const styles = StyleSheet.create({
   },
   cancelButton: {
     backgroundColor: '#ccc',
-  }
+  },
+  noSurveys: {
+    fontSize: 16,
+    color: '#888',
+    textAlign: 'center',
+    marginTop: 20,
+  },
 });
 
 export default MySurveysScreen;
