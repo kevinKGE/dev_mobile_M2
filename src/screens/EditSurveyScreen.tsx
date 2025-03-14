@@ -19,6 +19,7 @@ type Props = {
   navigation: EditSurveyScreenNavigationProp;
 };
 
+// Page de modification de sondage
 const EditSurveyScreen: React.FC<Props> = ({ route, navigation }) => {
   const { survey } = route.params;
   const [name, setName] = useState<string>(survey.nom);
@@ -26,6 +27,7 @@ const EditSurveyScreen: React.FC<Props> = ({ route, navigation }) => {
   const [endDate, setEndDate] = useState<Date>(new Date(survey.fin));
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
+  // Fonction pour enregistrer les modifications
   const handleSave = async () => {
     console.log("Tentative d'enregistrement des modifications...");
 

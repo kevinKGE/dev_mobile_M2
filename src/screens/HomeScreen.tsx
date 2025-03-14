@@ -2,12 +2,14 @@ import React from 'react';
 import { View, Text, StyleSheet, ViewStyle, TextStyle } from 'react-native';
 import Button from '../components/Button';
 
+// type de props pour l'écran d'accueil
 type HomeScreenProps = {
     navigation: {
         navigate: (screen: string) => void;
     };
 };
 
+// fonction qui retourne l'écran d'accueil
 const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
     return (
         <View style={styles.container}>

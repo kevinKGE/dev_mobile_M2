@@ -8,6 +8,7 @@ import Input from "../components/Input";
 
 type ConnectionScreenProps = NativeStackScreenProps<RootStackParamList, "Connexion">;
 
+// Page de connexion
 const ConnectionScreen: React.FC<ConnectionScreenProps> = ({ navigation }) => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -16,6 +17,7 @@ const ConnectionScreen: React.FC<ConnectionScreenProps> = ({ navigation }) => {
   const [serverError, setServerError] = useState("");
   const [showRegisterButton, setShowRegisterButton] = useState(false);
 
+  // Fonction pour gérer la connexion
   const handleLogin = async () => {
     setUsernameError("");
     setPasswordError("");
@@ -40,7 +42,7 @@ const ConnectionScreen: React.FC<ConnectionScreenProps> = ({ navigation }) => {
         password,
       });
     
-      console.log("Réponse de l'API :", response.data); // 🔍 Debug ici
+      console.log("Réponse de l'API :", response.data);
     
       if (response.data.token && response.data.id) {
         await AsyncStorage.setItem("jwt_token", response.data.token);
@@ -52,7 +54,7 @@ const ConnectionScreen: React.FC<ConnectionScreenProps> = ({ navigation }) => {
         Alert.alert("Erreur", "Connexion échouée. Aucun token reçu.");
       }
     } catch (error) {
-      console.error("Erreur lors de la connexion :", error); // 🔍 Debug ici
+      console.error("Erreur lors de la connexion :", error); 
       if (axios.isAxiosError(error) && error.response?.status === 404) {
         setServerError("Le pseudo n'existe pas dans la base de données.");
         setShowRegisterButton(true);

@@ -9,11 +9,11 @@ import {
   TouchableOpacity,
   Image,
 } from 'react-native';
-import { useNavigation } from '@react-navigation/native'; // Import for navigation
+import { useNavigation } from '@react-navigation/native'; 
 import { StackNavigationProp } from '@react-navigation/stack';
 import Survey from '../models/Survey';
-import { RootStackParamList } from '../../App'; // Adjust the path to RootStackParamList
-import AsyncStorage from "@react-native-async-storage/async-storage"; // ✅ Import manquant
+import { RootStackParamList } from '../../App'; 
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 
 type MySurveysScreenNavigationProp = StackNavigationProp<RootStackParamList, 'MySurveys'>;
@@ -22,19 +22,21 @@ const MySurveysScreen: React.FC = () => {
   const [surveys, setSurveys] = useState<Survey[]>([]);
   const [selectedSurvey, setSelectedSurvey] = useState<Survey | null>(null);
   const [isModalVisible, setModalVisible] = useState(false);
-  const participantId = 1; // Static participant ID (replace with dynamic management if needed)
-  const navigation = useNavigation<MySurveysScreenNavigationProp>(); // Typed navigation hook
+  const participantId = 1; 
+  const navigation = useNavigation<MySurveysScreenNavigationProp>(); 
   const [choicesStats, setChoicesStats] = useState<{ [key: number]: Record<string, number> }>({});
 
+  // Récupérer les sondages créés par l'utilisateur
   useEffect(() => {
-    fetchSurveys(); // Fetch surveys when the component mounts
+    fetchSurveys(); 
   }, []);
 
+  // Fonction pour récupérer les sondages depuis l'API
   const fetchSurveys = async () => {
     console.log("🔍 Fetching surveys...");
   
     try {
-      // Récupérer l'ID de l'utilisateur connecté
+      // on recup l'ID de l'utilisateur connecté
       const storedUserId = await AsyncStorage.getItem("user_id");
       if (!storedUserId) {
         console.error("❌ Erreur : Aucun ID utilisateur trouvé.");
@@ -42,16 +44,16 @@ const MySurveysScreen: React.FC = () => {
       }
       console.log(`✅ ID utilisateur récupéré : ${storedUserId}`);
   
-      // Récupérer tous les sondages depuis l'API
+      // maintenant on recup tous les sondages depuis l'API
       const response = await fetch("http://localhost:8080/api/sondage/");
       const data: any[] = await response.json();
       console.log("📥 Sondages reçus depuis l'API :", data);
   
-      // Filtrer les sondages créés par l'utilisateur connecté
+      // on filtre les sondages créés par l'utilisateur connecté
       const userSurveys = data
         .map((item) => ({
           ...Survey.fromJson(item),
-          photoBase64: item.photoBase64 || null, // Ajout du champ photo si disponible
+          photoBase64: item.photoBase64 || null,
         }))
         .filter((survey) => survey.createBy === parseInt(storedUserId));
   
@@ -59,7 +61,7 @@ const MySurveysScreen: React.FC = () => {
   
       setSurveys(userSurveys);
   
-      // Charger les stats pour chaque sondage après récupération
+      // on charg les stats pour chaque sondage après récupération
       for (const survey of userSurveys) {
         fetchChoicesStats(survey.sondageId);
       }
@@ -70,6 +72,7 @@ const MySurveysScreen: React.FC = () => {
   
   
 
+  // Fonction pour supprimer un sondage
   const deleteSurvey = async (id: number) => {
     console.log(`🗑 Tentative de suppression du sondage ID: ${id}`);
   
@@ -91,6 +94,7 @@ const MySurveysScreen: React.FC = () => {
   };
   
 
+  // Fonction pour récupérer les statistiques de choix pour un sondage
   const fetchChoicesStats = async (surveyId: number) => {
     try {
       console.log(`🔍 Fetching dates for survey ID: ${surveyId}`);
@@ -108,10 +112,9 @@ const MySurveysScreen: React.FC = () => {
         
         console.log(`📊 Raw choices data received for date ${date.date}:`, data);
   
-        // Correction ici : on accède directement aux choix imbriqués
         stats[date.dateSondageId] = {
           date: date.date,
-          choices: data.choices?.choices || {}, // Extraire les choix imbriqués
+          choices: data.choices?.choices || {}, 
         };
       }
   
@@ -128,23 +131,26 @@ const MySurveysScreen: React.FC = () => {
   
 
   
-
+  // Fonction pour ouvrir la modal de confirmation de suppression
   const confirmDeleteSurvey = (survey: Survey) => {
     console.log('Opening confirmation modal for survey:', survey);
     setSelectedSurvey(survey);
     setModalVisible(true);
   };
 
+  // Fonction pour fermer la modal de confirmation
   const closeModal = () => {
     setSelectedSurvey(null);
     setModalVisible(false);
   };
 
+  // Fonction pour naviguer vers l'écran de modification
   const navigateToEditSurvey = (survey: Survey) => {
     console.log('Navigating to Edit Survey Screen for:', survey);
     navigation.navigate('EditSurvey', { survey }); // Navigate to EditSurveyScreen
   };
 
+  // Fonction pour afficher un sondage
   const renderSurvey = ({ item }: { item: Survey }) => (
     <View style={styles.surveyCard}>
       <View style={styles.surveyHeader}>

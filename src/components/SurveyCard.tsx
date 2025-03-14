@@ -7,6 +7,7 @@ import {
 } from 'react-native';
 import SurveyDate from './SurveyDate';
 
+// fonction qui retourne un sondage avec ses dates
 const SurveyCard = ({ survey, userId }: { survey: any, userId: string | null }) => {
   const [dates, setDates] = useState<any[]>([]);
 

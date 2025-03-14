@@ -1,6 +1,6 @@
-// src/services/apiService.js
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
+// Fonction pour se connecter
 export const fetchUserData = async () => {
     const token = await AsyncStorage.getItem('userToken');
     

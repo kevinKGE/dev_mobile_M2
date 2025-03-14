@@ -4,10 +4,11 @@ import { TouchableOpacity, Text, StyleSheet, StyleProp, ViewStyle, TextStyle } f
 type ButtonProps = {
     title: string;
     onPress: () => void;
-    style?: StyleProp<ViewStyle>; // Optionnel : Style pour le bouton
-    textStyle?: StyleProp<TextStyle>; // Optionnel : Style pour le texte
+    style?: StyleProp<ViewStyle>; 
+    textStyle?: StyleProp<TextStyle>; 
 };
 
+// fonction qui retourne un bouton avec un titre et un style
 const Button: React.FC<ButtonProps> = ({ title, onPress, style, textStyle }) => {
     return (
         <TouchableOpacity style={[styles.button, style]} onPress={onPress}>

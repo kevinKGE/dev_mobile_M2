@@ -5,10 +5,11 @@ type RadioButtonProps = {
     label: string;
     selected: boolean;
     onPress: () => void;
-    containerStyle?: StyleProp<ViewStyle>; // Optionnel : Style pour le conteneur
-    labelStyle?: StyleProp<TextStyle>; // Optionnel : Style pour le label
+    containerStyle?: StyleProp<ViewStyle>; 
+    labelStyle?: StyleProp<TextStyle>; 
 };
 
+// fonction qui retourne un bouton radio avec un label
 const RadioButton: React.FC<RadioButtonProps> = ({ label, selected, onPress, containerStyle, labelStyle }) => {
     return (
         <TouchableOpacity style={[styles.container, containerStyle]} onPress={onPress}>

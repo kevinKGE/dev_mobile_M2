@@ -11,10 +11,11 @@ import Input from "../components/Input";
 import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
-import { RootStackParamList } from "../../App"; // Import du RootStackParamList défini dans App.tsx
+import { RootStackParamList } from "../../App"; 
 
 type RegisterScreenProps = NativeStackScreenProps<RootStackParamList, "Inscription">;
 
+// Page d'inscription
 const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation }) => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -35,6 +36,7 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation }) => {
     number: false,
   });
 
+  // Fonction pour valider le mot de passe
   const validatePassword = (password: string) => {
     setPasswordCriteria({
       length: password.length >= 8,
@@ -45,6 +47,7 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation }) => {
     });
   };
 
+  // Fonction pour gérer l'inscription
   const handleRegister = async () => {
     setUsernameError("");
     setPasswordError("");
@@ -90,7 +93,8 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation }) => {
           const userId = response.data.id;
   
           await AsyncStorage.setItem("jwt_token", response.data.token);
-          await AsyncStorage.setItem("user_id", userId.toString());          
+          await AsyncStorage.setItem("user_id", userId.toString()); 
+
           // Deuxième requête pour enregistrer les infos du participant
           console.log("infos :", nom, prenom, userId);
           await axios.post("http://localhost:8080/api/participant/", {

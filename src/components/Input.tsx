@@ -7,9 +7,10 @@ type InputProps = {
     value: string;
     onChangeText: (text: string) => void;
     secureTextEntry?: boolean;
-    containerStyle?: StyleProp<ViewStyle>; // Optionnel : Style pour le conteneur
-} & TextInputProps; // Pour inclure toutes les autres props possibles de TextInput
+    containerStyle?: StyleProp<ViewStyle>; 
+} & TextInputProps; 
 
+// fonction qui retourne un champ de texte
 const Input: React.FC<InputProps> = ({ placeholder, value, onChangeText, secureTextEntry, containerStyle, ...rest }) => {
     const [isPasswordVisible, setPasswordVisible] = useState(false);
 

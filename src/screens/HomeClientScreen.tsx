@@ -1,12 +1,14 @@
 import React from 'react';
 import { View, TouchableOpacity, StyleSheet, Text } from 'react-native';
 
+// type des propriétés
 type HomeClientScreenProps = {
   navigation: {
     navigate: (screen: string) => void;
   };
 };
 
+// fonction qui retourne l'écran d'accueil de l'espace client
 const HomeClientScreen: React.FC<HomeClientScreenProps> = ({ navigation }) => {
   return (
     <View style={styles.container}>

@@ -15,6 +15,7 @@ import { DatePicker } from "react-rainbow-components";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import ImageSelector from "../components/ImageSelector";
 
+// Page de création de sondage
 const CreateSurveyScreen = ({ navigation, route }) => {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
@@ -25,7 +26,8 @@ const CreateSurveyScreen = ({ navigation, route }) => {
   const [userId, setUserId] = useState(null);
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(false);
-
+ 
+  // Récupérer l'ID de l'utilisateur stocké dans le stockage local
   useEffect(() => {
     const fetchUserId = async () => {
       const storedUserId = await AsyncStorage.getItem("user_id");
@@ -34,10 +36,12 @@ const CreateSurveyScreen = ({ navigation, route }) => {
     fetchUserId();
   }, []);
 
+  // Fonction pour ajouter un message dans la liste
   const addMessage = (newMessage) => {
     setMessages((prevMessages) => [...prevMessages, newMessage]);
   };
 
+  // Fonction pour prendre une photo avec la caméra
   const handleTakePhoto = () => {
     launchCamera({ mediaType: "photo", cameraType: "back", saveToPhotos: true }, (response) => {
       if (response.didCancel) {
@@ -51,6 +55,7 @@ const CreateSurveyScreen = ({ navigation, route }) => {
     });
   };
 
+  // Fonction pour ajouter une date à la liste
   const addDate = () => {
     if (!dates.find(d => d.getTime() === newDate.getTime())) {
       setDates([...dates, newDate]);
@@ -59,10 +64,12 @@ const CreateSurveyScreen = ({ navigation, route }) => {
     }
   };
 
+  // Fonction pour retirer une date de la liste
   const removeDate = (index) => {
     setDates(dates.filter((_, i) => i !== index));
   };
 
+  // Fonction pour créer un sondage
   const handleCreateSurvey = async () => {
     setMessages([]);
     addMessage("Début de la création du sondage...");
@@ -79,6 +86,7 @@ const CreateSurveyScreen = ({ navigation, route }) => {
 
     setLoading(true);
 
+    // Créer un objet FormData pour envoyer les données
     const formData = new FormData();
     formData.append("name", name);
     formData.append("description", description);

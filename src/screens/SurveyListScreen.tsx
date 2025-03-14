@@ -10,10 +10,12 @@ import {
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import SurveyCard from '../components/SurveyCard';
 
+// Page de liste des sondages
 const SurveyListScreen = ({ navigation }) => {
   const [surveys, setSurveys] = useState([]);
   const [userId, setUserId] = useState(null);
 
+  // Récupérer l'ID de l'utilisateur stocké dans le stockage local
   useEffect(() => {
     const fetchUserId = async () => {
       const storedUserId = await AsyncStorage.getItem("user_id");
@@ -23,6 +25,7 @@ const SurveyListScreen = ({ navigation }) => {
     loadSurveys();
   }, []);
 
+  // Fonction pour charger les sondages depuis l'API
   const loadSurveys = async () => {
     try {
       const response = await fetch('http://localhost:8080/api/sondage/');

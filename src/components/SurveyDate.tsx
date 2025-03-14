@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 
 const CHOIX = ["DISPONIBLE", "INDISPONIBLE", "PEUTETRE"];
 
+// fonction qui retourne un composant pour une date de sondage
 const SurveyDate = ({ date, userId, onChoiceSelected }: { date: any, userId: string | null, onChoiceSelected: () => void }) => {
   const [selectedChoice, setSelectedChoice] = useState<string | null>(null);
   const [alreadyAnswered, setAlreadyAnswered] = useState<boolean>(false);
@@ -29,8 +30,9 @@ const SurveyDate = ({ date, userId, onChoiceSelected }: { date: any, userId: str
     }
   };
 
+  // fonction pour gérer la sélection d'un choix
   const handleChoiceSelect = async (choice: string) => {
-    if (alreadyAnswered) return; // Ne pas permettre une double participation
+    if (alreadyAnswered) return; //on permet pas une double participation
 
     try {
       const response = await fetch(`http://localhost:8080/api/date/${date.dateSondageId}/participer`, {
@@ -39,8 +41,8 @@ const SurveyDate = ({ date, userId, onChoiceSelected }: { date: any, userId: str
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          dateSondeeId: 0,  // Peut être ignoré si auto-incrémenté en base
-          participant: parseInt(userId!), // Assurez-vous que c'est bien un entier
+          dateSondeeId: 0,  
+          participant: parseInt(userId!), 
           choix: choice
         }),
       });
@@ -53,7 +55,7 @@ const SurveyDate = ({ date, userId, onChoiceSelected }: { date: any, userId: str
       console.log(`✅ Participation enregistrée pour ${choice}`);
       setSelectedChoice(choice);
       setAlreadyAnswered(true);
-      onChoiceSelected(); // Rafraîchir les participations
+      onChoiceSelected(); // on rafraichit les participations
     } catch (error) {
       console.error(`❌ Erreur lors de la participation:`, error);
     }
