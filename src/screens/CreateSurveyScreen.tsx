@@ -8,36 +8,39 @@ import {
   StyleSheet,
   Alert,
   TouchableOpacity,
-  Image,
 } from "react-native";
 import { launchCamera } from "react-native-image-picker";
 import { DatePicker } from "react-rainbow-components";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import ImageSelector from "../components/ImageSelector";
+import { NativeStackScreenProps } from "@react-navigation/native-stack";
+import { RootStackParamList } from "../../App";
 
-// Page de création de sondage
-const CreateSurveyScreen = ({ navigation, route }) => {
-  const [name, setName] = useState("");
-  const [description, setDescription] = useState("");
-  const [fin, setFin] = useState(new Date(new Date().setDate(new Date().getDate() + 1)));
-  const [dates, setDates] = useState([]);
-  const [newDate, setNewDate] = useState(new Date());
-  const [photoUri, setPhotoUri] = useState(null);
-  const [userId, setUserId] = useState(null);
-  const [messages, setMessages] = useState([]);
-  const [loading, setLoading] = useState(false);
- 
+// Définition des types pour navigation et route
+type CreateSurveyScreenProps = NativeStackScreenProps<RootStackParamList, "CreateSurvey">;
+
+const CreateSurveyScreen: React.FC<CreateSurveyScreenProps> = ({ navigation, route }) => {
+  const [name, setName] = useState<string>("");
+  const [description, setDescription] = useState<string>("");
+  const [fin, setFin] = useState<Date>(new Date(new Date().setDate(new Date().getDate() + 1)));
+  const [dates, setDates] = useState<Date[]>([]);
+  const [newDate, setNewDate] = useState<Date>(new Date());
+  const [photoUri, setPhotoUri] = useState<string | null>(null);
+  const [userId, setUserId] = useState<string | null>(null);
+  const [messages, setMessages] = useState<string[]>([]);
+  const [loading, setLoading] = useState<boolean>(false);
+
   // Récupérer l'ID de l'utilisateur stocké dans le stockage local
   useEffect(() => {
     const fetchUserId = async () => {
       const storedUserId = await AsyncStorage.getItem("user_id");
-      setUserId(storedUserId);
+      setUserId(storedUserId ?? null);
     };
     fetchUserId();
   }, []);
 
   // Fonction pour ajouter un message dans la liste
-  const addMessage = (newMessage) => {
+  const addMessage = (newMessage: string) => {
     setMessages((prevMessages) => [...prevMessages, newMessage]);
   };
 
@@ -45,19 +48,22 @@ const CreateSurveyScreen = ({ navigation, route }) => {
   const handleTakePhoto = () => {
     launchCamera({ mediaType: "photo", cameraType: "back", saveToPhotos: true }, (response) => {
       if (response.didCancel) {
-        addMessage("Photo annulée par l'utilisateur.");
+        addMessage("📸 Photo annulée par l'utilisateur.");
       } else if (response.errorCode) {
-        addMessage(`Erreur photo : ${response.errorMessage}`);
-      } else if (response.assets?.length > 0) {
-        setPhotoUri(response.assets[0].uri);
-        addMessage("Photo capturée avec succès.");
+        addMessage(`❌ Erreur photo : ${response.errorMessage}`);
+      } else if (response.assets && response.assets.length > 0) {
+        const uri = response.assets[0].uri;
+        if (uri) {
+          setPhotoUri(uri);
+          addMessage("✅ Photo capturée avec succès.");
+        }
       }
     });
   };
 
   // Fonction pour ajouter une date à la liste
   const addDate = () => {
-    if (!dates.find(d => d.getTime() === newDate.getTime())) {
+    if (!dates.find((d) => d.getTime() === newDate.getTime())) {
       setDates([...dates, newDate]);
     } else {
       Alert.alert("Erreur", "Cette date est déjà ajoutée.");
@@ -65,22 +71,22 @@ const CreateSurveyScreen = ({ navigation, route }) => {
   };
 
   // Fonction pour retirer une date de la liste
-  const removeDate = (index) => {
+  const removeDate = (index: number) => {
     setDates(dates.filter((_, i) => i !== index));
   };
 
   // Fonction pour créer un sondage
   const handleCreateSurvey = async () => {
     setMessages([]);
-    addMessage("Début de la création du sondage...");
+    addMessage("⏳ Début de la création du sondage...");
 
     if (!name || !description || dates.length === 0 || !fin) {
-      addMessage("Veuillez remplir tous les champs et ajouter au moins une date.");
+      addMessage("⚠️ Veuillez remplir tous les champs et ajouter au moins une date.");
       return;
     }
 
     if (!userId) {
-      addMessage("Erreur : utilisateur non connecté.");
+      addMessage("❌ Erreur : utilisateur non connecté.");
       return;
     }
 
@@ -98,16 +104,16 @@ const CreateSurveyScreen = ({ navigation, route }) => {
         const response = await fetch(photoUri);
         const blob = await response.blob();
         formData.append("photo", blob, "photo.jpg");
-        addMessage("Photo ajoutée au formulaire.");
+        addMessage("🖼 Photo ajoutée au formulaire.");
       } catch (error) {
         console.error("Erreur lors de la conversion de la photo :", error);
-        addMessage("Erreur lors de la conversion de la photo.");
+        addMessage("❌ Erreur lors de la conversion de la photo.");
         return;
       }
     }
 
     try {
-      addMessage("Envoi de la requête...");
+      addMessage("📤 Envoi de la requête...");
       const response = await fetch("http://localhost:8080/api/sondage/", {
         method: "POST",
         body: formData,
@@ -120,9 +126,9 @@ const CreateSurveyScreen = ({ navigation, route }) => {
       }
 
       const data = await response.json();
-      addMessage("Sondage créé avec succès.");
+      addMessage("✅ Sondage créé avec succès.");
 
-      // Ajouter les dates une par une après la création du sondage
+      // Ajouter les dates après la création du sondage
       for (const date of dates) {
         await fetch(`http://localhost:8080/api/sondage/${data.sondageId}/dates`, {
           method: "POST",
@@ -137,7 +143,7 @@ const CreateSurveyScreen = ({ navigation, route }) => {
       navigation.navigate("SurveyList");
     } catch (error) {
       console.error("Erreur lors de la création du sondage :", error);
-      addMessage(`Erreur : ${error instanceof Error ? error.message : "Erreur inconnue"}`);
+      addMessage(`❌ Erreur : ${error instanceof Error ? error.message : "Erreur inconnue"}`);
     } finally {
       setLoading(false);
     }
@@ -146,19 +152,12 @@ const CreateSurveyScreen = ({ navigation, route }) => {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Créer un sondage</Text>
-      <View style={styles.messageContainer}>
-        {messages.map((msg, index) => (
-          <Text key={index} style={styles.message}>{msg}</Text>
-        ))}
-      </View>
       <TextInput placeholder="Nom du sondage" value={name} onChangeText={setName} style={styles.input} />
       <TextInput placeholder="Description" value={description} onChangeText={setDescription} style={styles.input} />
-      
-      <Text style={styles.subtitle}>Date de fin :</Text>
-      <DatePicker value={fin} onChange={(value) => setFin(value)} formatStyle="large" />
+      <DatePicker value={fin} onChange={(value) => setFin(value as Date)} formatStyle="large" />
 
       <Text style={styles.subtitle}>Ajouter des dates :</Text>
-      <DatePicker value={newDate} onChange={setNewDate} formatStyle="large" />
+      <DatePicker value={newDate} onChange={(value) => setNewDate(value as Date)} formatStyle="large" />
       <Button title="Ajouter la date" onPress={addDate} />
 
       <FlatList
@@ -166,7 +165,7 @@ const CreateSurveyScreen = ({ navigation, route }) => {
         keyExtractor={(item, index) => index.toString()}
         renderItem={({ item, index }) => (
           <View style={styles.dateItem}>
-            <Text>{new Date(item).toLocaleDateString()}</Text>
+            <Text>{item.toLocaleDateString()}</Text>
             <TouchableOpacity onPress={() => removeDate(index)}>
               <Text style={styles.removeText}>✖</Text>
             </TouchableOpacity>
@@ -174,20 +173,11 @@ const CreateSurveyScreen = ({ navigation, route }) => {
         )}
       />
       <ImageSelector onImageSelected={setPhotoUri} />
-
-      
-      <TouchableOpacity
-        style={[styles.createButton, loading && styles.disabledButton]}
-        onPress={handleCreateSurvey}
-        disabled={loading}
-      >
-        <Text style={styles.createButtonText}>
-          {loading ? "Création en cours..." : "Créer le sondage"}
-        </Text>
-      </TouchableOpacity>
+      <Button title="Créer le sondage" onPress={handleCreateSurvey} disabled={loading} />
     </View>
   );
 };
+
 
 const styles = StyleSheet.create({
   container: { flex: 1, padding: 20, backgroundColor: "#f8f8f8" },

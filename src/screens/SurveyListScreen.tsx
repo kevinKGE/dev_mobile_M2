@@ -9,17 +9,28 @@ import {
 } from 'react-native';
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import SurveyCard from '../components/SurveyCard';
+import { NativeStackScreenProps } from "@react-navigation/native-stack";
+import { RootStackParamList } from "../../App";
+
+// Définition du type pour les props de navigation
+type SurveyListScreenProps = NativeStackScreenProps<RootStackParamList, "SurveyList">;
+
+// Interface pour un sondage
+interface Survey {
+  sondageId: number;
+  [key: string]: any;
+}
 
 // Page de liste des sondages
-const SurveyListScreen = ({ navigation }) => {
-  const [surveys, setSurveys] = useState([]);
-  const [userId, setUserId] = useState(null);
+const SurveyListScreen: React.FC<SurveyListScreenProps> = ({ navigation }) => {
+  const [surveys, setSurveys] = useState<Survey[]>([]);
+  const [userId, setUserId] = useState<string | null>(null);
 
   // Récupérer l'ID de l'utilisateur stocké dans le stockage local
   useEffect(() => {
     const fetchUserId = async () => {
       const storedUserId = await AsyncStorage.getItem("user_id");
-      setUserId(storedUserId);
+      setUserId(storedUserId ?? null);
     };
     fetchUserId();
     loadSurveys();
@@ -29,7 +40,7 @@ const SurveyListScreen = ({ navigation }) => {
   const loadSurveys = async () => {
     try {
       const response = await fetch('http://localhost:8080/api/sondage/');
-      const data = await response.json();
+      const data: Survey[] = await response.json();
       setSurveys(data);
     } catch (error) {
       console.error('Erreur lors du chargement des sondages:', error);
@@ -50,7 +61,7 @@ const SurveyListScreen = ({ navigation }) => {
 
       <FlatList 
         data={surveys} 
-        keyExtractor={(item) => item.sondageId.toString()} 
+        keyExtractor={(item) => item.sondageId?.toString() || Math.random().toString()} 
         renderItem={({ item }) => <SurveyCard survey={item} userId={userId} />}
         contentContainerStyle={styles.listContent} 
       />
@@ -64,6 +75,7 @@ const styles = StyleSheet.create({
   title: { fontSize: 18, fontWeight: 'bold' },
   createButton: { backgroundColor: '#007AFF', padding: 10, borderRadius: 5 },
   createButtonText: { color: '#fff', fontSize: 16 },
+  listContent: { paddingBottom: 20 },
 });
 
 export default SurveyListScreen;

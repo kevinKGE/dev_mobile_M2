@@ -1,19 +1,21 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, Button, Image, ActivityIndicator, StyleSheet } from "react-native";
+import { View, Text, Image, ActivityIndicator, StyleSheet } from "react-native";
 import { Picker } from "@react-native-picker/picker";
 import { launchCamera } from "react-native-image-picker";
+import { Theme,ImageSelectorProps } from "../interfaces/ImageSelectorTypes";
 
-const ImageSelector = ({ onImageSelected }) => {
-  const [themes, setThemes] = useState([]);
-  const [selectedTheme, setSelectedTheme] = useState("none");
-  const [photoUri, setPhotoUri] = useState(null);
-  const [loading, setLoading] = useState(true);
+
+const ImageSelector: React.FC<ImageSelectorProps> = ({ onImageSelected }) => {
+  const [themes, setThemes] = useState<Theme[]>([]);
+  const [selectedTheme, setSelectedTheme] = useState<string>("none");
+  const [photoUri, setPhotoUri] = useState<string | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
 
   // Chargement des thèmes depuis l'API
   useEffect(() => {
     fetch("http://localhost:3001/api/themes")
       .then((res) => res.json())
-      .then((data) => {
+      .then((data: Theme[]) => {
         setThemes(data);
         setLoading(false);
       })
@@ -24,7 +26,7 @@ const ImageSelector = ({ onImageSelected }) => {
   }, []);
 
   // Gestion de la sélection d'un thème ou de la prise d'une photo
-  const handleThemeChange = (value) => {
+  const handleThemeChange = (value: string) => {
     setSelectedTheme(value);
 
     if (value === "camera") {
@@ -49,11 +51,13 @@ const ImageSelector = ({ onImageSelected }) => {
         console.log("📸 Photo annulée par l'utilisateur.");
         return;
       }
-      if (response.assets?.length > 0) {
+      if (response.assets && response.assets.length > 0) {
         const uri = response.assets[0].uri;
-        console.log("✅ Photo capturée :", uri);
-        setPhotoUri(uri);
-        onImageSelected(uri);
+        if (uri) {
+          console.log("✅ Photo capturée :", uri);
+          setPhotoUri(uri);
+          onImageSelected(uri);
+        }
       }
     });
   };

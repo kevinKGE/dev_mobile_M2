@@ -168,7 +168,6 @@ const MySurveysScreen: React.FC = () => {
         {item.cloture ? "🔴 Clôturé" : "🟢 Ouvert"}
       </Text>
   
-      {/* Résultats avec dates et stats sur une ligne */}
       {choicesStats[item.sondageId] && (
   <View style={styles.statsContainer}>
     <Text style={styles.statsTitle}>📊 Résultats :</Text>
@@ -189,9 +188,7 @@ const MySurveysScreen: React.FC = () => {
   </View>
 )}
 
-  
-      {/* Boutons stylisés */}
-      <View style={styles.buttonGroup}>
+        <View style={styles.buttonGroup}>
         <TouchableOpacity style={styles.modifyButton} onPress={() => navigateToEditSurvey(item)}>
           <Text style={styles.buttonText}>✏️ Modifier</Text>
         </TouchableOpacity>
@@ -219,10 +216,10 @@ const MySurveysScreen: React.FC = () => {
         <Text style={styles.noSurveys}>Aucun Sondage créé.</Text>
       )}
 
-      {/* Confirmation Modal */}
+
       {selectedSurvey && (
   <Modal
-    animationType="fade" // Change "slide" to "fade" for a better effect
+    animationType="fade" 
     transparent={true}
     visible={isModalVisible}
     onRequestClose={closeModal}
@@ -358,16 +355,16 @@ const styles = StyleSheet.create({
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)', // Fond semi-transparent
+    backgroundColor: 'rgba(0,0,0,0.5)', 
     justifyContent: 'center',
     alignItems: 'center',
   },
   modalContainer: {
-    width: '80%', // Largeur du modal
+    width: '80%', 
     backgroundColor: 'white',
     padding: 20,
     borderRadius: 10,
-    elevation: 5, // Ombre sur Android
+    elevation: 5, 
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
